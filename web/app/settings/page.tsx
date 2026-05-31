@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState, type ElementType, type ReactNode } from 'react';
 import Navbar from '../components/Navbar';
 import { useWallet } from '../components/WalletAdapterProvider';
@@ -7,7 +8,7 @@ import { getMarkets, getUserActivity, type Pool, type ActivityItem } from '../li
 import { useI18n, supportedLanguages, type AppLanguage } from '../lib/i18n';
 import { useBrowserNotifications } from '../lib/notifications';
 import { exportRecords } from '../lib/export';
-import { Bell, Download, Languages, LoaderCircle, FileDown, Globe2 } from 'lucide-react';
+import { Bell, Download, Languages, LoaderCircle, FileDown, Globe2, ChevronRight } from 'lucide-react';
 
 function StatPill({ label, value }: { label: string; value: string | number }) {
   return (
@@ -196,6 +197,14 @@ export default function SettingsPage() {
                   {notifications.enabled ? 'On' : 'Off'}
                 </button>
               </div>
+
+              <Link
+                href="/settings/notifications"
+                className="flex items-center justify-between rounded-xl border border-border bg-card/40 px-4 py-3 transition-colors hover:bg-card"
+              >
+                <span className="font-medium text-foreground">Notification Preferences</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </Link>
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
