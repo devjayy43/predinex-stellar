@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import MarketListPreloader from "./components/MarketListPreloader";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import PushNotificationPrompt from "./components/PushNotificationPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -91,6 +92,7 @@ export default function RootLayout({
                   {children}
                 </div>
                 <Footer />
+                <PushNotificationPrompt />
                 <PWAInstallPrompt />
               </ToastProvider>
             </WalletAdapterProvider>
