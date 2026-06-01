@@ -18,6 +18,8 @@ mod protocol_fee_tests;
 mod test;
 mod validation_hardening_tests;
 mod validation_prop_tests;
+mod fuzz;
+mod e2e_tests;
 mod webhook_tests;
 
 // ── Issue #175: Event schema versioning ──────────────────────────────────────
