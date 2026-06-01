@@ -301,6 +301,8 @@ pub enum ContractError {
     InvalidWebhookUrl = 53,
     /// #396 — No webhook found matching the given URL.
     WebhookNotFound = 54,
+    /// #507 — No winning bets exist in pool (all bets were on losing outcomes).
+    NoWinningBets = 55,
 }
 
 /// #176 — Settlement source tag indicating who initiated pool settlement.
@@ -3465,6 +3467,9 @@ impl PredinexContract {
 
         let totals = Self::read_outcome_totals(env, pool_id, &pool);
         let pool_winning_total = totals.get(winning_outcome).unwrap();
+        if pool_winning_total == 0 {
+            return Err(ContractError::NoWinningBets);
+        }
         let total_pool_balance = Self::sum_totals(&totals)?;
 
         let fee_bps = Self::pool_effective_fee_bps(env, pool_id);
