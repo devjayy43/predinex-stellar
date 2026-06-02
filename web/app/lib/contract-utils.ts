@@ -1,6 +1,6 @@
 /**
- * Contract utility functions for common operations
- * Provides helper functions for contract interactions
+ * Contract utility functions for common operations.
+ * Formatting and unit conversion live in the shared formatting module.
  */
 
 /**
@@ -88,13 +88,4 @@ export function calculatePotentialWinnings(
  */
 export function calculateProfitLoss(betAmount: number, winnings: number): number {
   return winnings - betAmount;
-}
-
-/**
- * Format percentage for display
- * @param percentage Percentage value
- * @returns Formatted string
- */
-export function formatPercentage(percentage: number): string {
-  return `${percentage.toFixed(1)}%`;
 }

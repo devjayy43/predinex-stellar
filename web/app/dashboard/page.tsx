@@ -31,7 +31,7 @@ const PlatformStats = dynamic(() => import('../../components/PlatformStats'), {
   loading: () => <StatsSkeleton />,
 });
 
-const PortfolioOverview = dynamic(() => import('../../components/PortfolioOverview'), {
+const PortfolioOverview = dynamic(() => import('@/components/PortfolioOverview'), {
   loading: () => <CardSkeleton className="h-32 mb-8" />,
 });
 

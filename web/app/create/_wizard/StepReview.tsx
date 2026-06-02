@@ -1,7 +1,7 @@
 'use client';
 
 import { Pencil } from 'lucide-react';
-import MarketCard from '../../components/MarketCard';
+import MarketCard from '@/components/MarketCard';
 import type { CreateMarketDraft } from './useCreateWizard';
 import type { ProcessedMarket } from '../../lib/market-types';
 

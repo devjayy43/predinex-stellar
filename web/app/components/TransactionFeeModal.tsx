@@ -2,7 +2,7 @@
 
 import { useId, useRef } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { formatTokenAmount } from '../lib/formatting';
+import { formatTokenAmount } from '@/lib/formatting';
 import { useFocusTrap } from '../lib/hooks/useFocusTrap';
 import { useEscapeDismiss } from '../lib/hooks/useEscapeDismiss';
 

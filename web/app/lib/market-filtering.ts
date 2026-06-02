@@ -1,4 +1,4 @@
-import { TOKEN_SYMBOL, unitsToStroops } from './formatting';
+import { TOKEN_SYMBOL, unitsToStroops } from '@/lib/formatting';
 import type {
   MarketFilters,
   MarketStatusFilter,

@@ -23,7 +23,7 @@ import {
   formatTokenAmountCompact,
   TOKEN_SYMBOL,
   TOKEN_CONFIG,
-} from '../../app/lib/formatting';
+} from '../../lib/formatting';
 
 describe('Currency Formatting', () => {
   describe('Configurable Token Symbol', () => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
-import BettingSection from "../../components/BettingSection";
+import BettingSection from "@/components/BettingSection";
 import ClaimWinningsButton from "../../../components/ClaimWinningsButton";
 import SettledPoolSummary from "../../components/SettledPoolSummary";
 import { useWallet } from "../../components/WalletAdapterProvider";

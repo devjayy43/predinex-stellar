@@ -4,7 +4,7 @@ import { useMemo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from "../components/Navbar";
 import { StatsCard } from '@/components/ui/StatsCard';
-import MarketGrid from "../components/MarketGrid";
+import MarketGrid from "@/components/MarketGrid";
 import { usePoolFavorites } from "../lib/hooks/usePoolFavorites";
 import { useMarketDiscovery } from "../lib/hooks/useMarketDiscovery";
 import RouteErrorBoundary from "../../components/RouteErrorBoundary";
