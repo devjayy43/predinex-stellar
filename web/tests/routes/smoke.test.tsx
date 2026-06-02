@@ -340,11 +340,11 @@ describe('Route smoke tests', () => {
     expect(screen.getByRole('main')).toBeInTheDocument();
   });
 
-  it('/markets/[id] renders without crashing (loading state)', () => {
+  it('/markets/[id] renders without crashing (loading state)', async () => {
     // Params resolve asynchronously; the page shows a loading skeleton first.
     renderWithProviders(
       <PoolDetailPage params={Promise.resolve({ id: '1' })} />
     );
-    expect(screen.getByRole('main')).toBeInTheDocument();
+    expect(await screen.findByRole('main')).toBeInTheDocument();
   });
 });

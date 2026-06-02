@@ -81,7 +81,7 @@ describe('NetworkMismatchWarning', () => {
     await waitFor(() => expect(switchBtn).toBeDisabled());
   });
 
-  it('does not render when there is no mismatch', () => {
+  it('does not render when there is no mismatch', async () => {
     const { useNetworkMismatch } = vi.mocked(
       await import('../../lib/hooks/useNetworkMismatch')
     );
