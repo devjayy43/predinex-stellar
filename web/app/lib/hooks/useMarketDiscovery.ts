@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('useMarketDiscovery');
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MarketFilters, PaginationState, ProcessedMarket } from '../market-types';
@@ -125,7 +127,7 @@ export function useMarketDiscovery(options: UseMarketDiscoveryOptions = {}): Use
     } catch (err) {
       if (!isCurrentRequest()) return;
 
-      console.error('Failed to fetch markets:', err);
+      log.error('Failed to fetch markets:', err);
       const issue = classifyConnectivityIssue(err);
       const message = getConnectivityMessage(issue, 'Loading markets');
 

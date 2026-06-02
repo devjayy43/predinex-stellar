@@ -59,8 +59,10 @@ export interface TransactionEstimate {
 
 /**
  * TransactionService provides high-level utilities for interacting with the Stacks blockchain.
- * It manages the lifecycle of a transaction from estimation and creation to broadcasting and status tracking.
  */
+import { createScopedLogger } from './logger';
+
+const log = createScopedLogger('transaction-service');
 export class TransactionService {
   private network: StacksNetwork;
 
@@ -91,12 +93,8 @@ export class TransactionService {
         totalCost: Number(feeEstimate),
       };
     } catch (error) {
-      console.error('Transaction estimation failed:', error);
-      return {
-        estimatedFee: 1000,
-        estimatedNonce: 0,
-        totalCost: 1000,
-      };
+      log.error('Transaction estimation failed', error);
+      return { estimatedFee: 1000, estimatedNonce: 0, totalCost: 1000 };
     }
   }
 
@@ -168,7 +166,7 @@ export class TransactionService {
 
       return await makeContractCall(txOptions);
     } catch (error) {
-      console.error('Transaction creation failed:', error);
+      log.error('Transaction creation failed', error);
       throw new Error(`Failed to create transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -193,7 +191,7 @@ export class TransactionService {
         broadcastResult,
       };
     } catch (error) {
-      console.error('Transaction broadcast failed:', error);
+      log.error('Transaction broadcast failed', error);
       throw new Error(`Failed to broadcast transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -215,7 +213,7 @@ export class TransactionService {
       const transaction = await this.createTransaction(payload, senderKey, options);
       return await this.broadcastTransaction(transaction);
     } catch (error) {
-      console.error('Transaction execution failed:', error);
+      log.error('Transaction execution failed', error);
       throw error;
     }
   }
@@ -293,7 +291,7 @@ export class TransactionService {
         details: txData,
       };
     } catch (error) {
-      console.error('Failed to get transaction status:', error);
+      log.error('Failed to get transaction status', error);
       return { status: 'not_found' };
     }
   }

@@ -4,6 +4,9 @@
  */
 
 import { WalletSession } from './wallet-service';
+import { createScopedLogger } from './logger';
+
+const log = createScopedLogger('session-storage');
 
 export interface StoredSession {
   session: WalletSession;
@@ -30,7 +33,7 @@ export class SessionStorageService {
       const encrypted = this.encryptData(JSON.stringify(storedSession));
       localStorage.setItem(this.STORAGE_KEY, encrypted);
     } catch (error) {
-      console.error('Failed to store session:', error);
+      log.error('Failed to store session', error);
       throw new Error('Session storage failed');
     }
   }
@@ -70,7 +73,7 @@ export class SessionStorageService {
         lastActivity: new Date(storedSession.session.lastActivity),
       };
     } catch (error) {
-      console.error('Failed to retrieve session:', error);
+      log.error('Failed to retrieve session', error);
       this.clearSession();
       return null;
     }
@@ -83,7 +86,7 @@ export class SessionStorageService {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
     } catch (error) {
-      console.error('Failed to clear session:', error);
+      log.error('Failed to clear session', error);
     }
   }
 

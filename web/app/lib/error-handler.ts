@@ -91,11 +91,11 @@ export function formatErrorCode(code: string): string {
  * @param error Error object
  */
 export function logError(context: string, error: any): void {
-  console.error(`[${context}]`, {
-    message: error?.message,
-    code: error?.code,
-    details: error?.details,
-    stack: error?.stack,
+  import('./logger').then(({ logger }) => {
+    logger.error(error?.message ?? 'Unknown error', context, {
+      code: error?.code,
+      details: error?.details,
+    });
   });
 }
 
