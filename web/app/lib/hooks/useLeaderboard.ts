@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('useLeaderboard');
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -100,7 +102,7 @@ export function useLeaderboard(currentUserAddress?: string | null): UseLeaderboa
         setUserRank(found?.rank ?? null);
       }
     } catch (e) {
-      console.error('useLeaderboard error:', e);
+      log.error('useLeaderboard error:', e);
       setError('Failed to load leaderboard. Please try again.');
     } finally {
       setIsLoading(false);

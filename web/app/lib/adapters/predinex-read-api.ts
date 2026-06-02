@@ -62,7 +62,7 @@ async function getUserActivitySoroban(
 async function getPool(poolId: number): Promise<Pool | null> {
   const result = await getPoolFromSoroban(poolId);
   if (result.error) {
-    console.error(`[predinexReadApi] Error fetching pool ${poolId}:`, result.error);
+    log.error(`[predinexReadApi] Error fetching pool ${poolId}:`, result.error);
   }
 
   if (!result.pool) return null;
@@ -83,7 +83,7 @@ async function getPool(poolId: number): Promise<Pool | null> {
 async function getUserBet(poolId: number, userAddress: string): Promise<UserBetData | null> {
   const result = await getUserBetFromSoroban(poolId, userAddress);
   if (result.error) {
-    console.error(`[predinexReadApi] Error fetching user bet for pool ${poolId}:`, result.error);
+    log.error(`[predinexReadApi] Error fetching user bet for pool ${poolId}:`, result.error);
   }
   return result.bet;
 }

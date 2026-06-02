@@ -60,7 +60,7 @@ export async function getPoolCount(): Promise<number> {
         const value = cvToValue(result);
         return Number(value);
     } catch (e) {
-        console.error("Failed to fetch pool count", e);
+        log.error("Failed to fetch pool count", e);
         return 0;
     }
 }
@@ -98,7 +98,7 @@ export async function getPool(poolId: number): Promise<Pool | null> {
             status: value.settled ? 'settled' : 'active',
         };
     } catch (e) {
-        console.error(`Failed to fetch pool ${poolId}`, e);
+        log.error(`Failed to fetch pool ${poolId}`, e);
         return null;
     }
 }
@@ -125,7 +125,7 @@ export async function fetchActivePools(): Promise<Pool[]> {
     try {
         return await getMarkets('active');
     } catch (e) {
-        console.error('Failed to fetch active pools', e);
+        log.error('Failed to fetch active pools', e);
         return [];
     }
 }
@@ -146,7 +146,7 @@ export async function getTotalVolume(): Promise<number> {
         const value = cvToValue(result);
         return Number(value);
     } catch (e) {
-        console.error("Error fetching total volume:", e);
+        log.error("Error fetching total volume:", e);
         return 0;
     }
 }
@@ -186,7 +186,7 @@ export async function getUserBet(poolId: number, userAddress: string): Promise<U
             totalBet: toNumber((value['total-bet'] as { value?: unknown } | undefined)?.value ?? value['total-bet']),
         };
     } catch (e) {
-        console.error(`Failed to fetch user bet for pool ${poolId}`, e);
+        log.error(`Failed to fetch user bet for pool ${poolId}`, e);
         return null;
     }
 }
@@ -388,7 +388,7 @@ export async function getUserActivity(
         const response = await fetch(url);
 
         if (!response.ok) {
-            console.error(`Stacks API error: ${response.status}`);
+            log.error(`Stacks API error: ${response.status}`);
             return [];
         }
 
@@ -439,7 +439,7 @@ export async function getUserActivity(
             };
         });
     } catch (e) {
-        console.error('Failed to fetch user activity', e);
+        log.error('Failed to fetch user activity', e);
         return [];
     }
 }

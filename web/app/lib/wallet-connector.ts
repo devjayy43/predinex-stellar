@@ -5,6 +5,9 @@
 
 import { FinishedAuthData, showConnect, UserSession } from '@stacks/connect';
 import { handleWalletError, WalletError } from './wallet-errors';
+import { createScopedLogger } from './logger';
+
+const log = createScopedLogger('wallet-connector');
 
 /**
  * Configuration for the Stacks wallet connection
@@ -57,7 +60,7 @@ export async function connectWallet(options: WalletConnectionOptions): Promise<v
                 throw new Error(`Unsupported wallet type: ${walletType}`);
         }
     } catch (error) {
-        console.error(`Error connecting to ${walletType}:`, error);
+        log.error(`Error connecting to ${walletType}`, error);
         const walletError = handleWalletError(error, walletType);
         throw walletError;
     }
@@ -86,13 +89,13 @@ async function connectExtensionWallet(
         redirectTo: WALLET_CONFIG.redirectTo,
         userSession,
         onFinish: async (authData) => {
-            console.log(`${walletType} authentication finished:`, authData);
+            log.debug(`${walletType} authentication finished`);
             if (onFinish) {
                 onFinish(authData);
             }
         },
         onCancel: () => {
-            console.log(`User cancelled ${walletType} connection`);
+            log.debug(`User cancelled ${walletType} connection`);
             if (onCancel) {
                 onCancel();
             }
@@ -121,13 +124,13 @@ async function connectWalletConnect(
         redirectTo: WALLET_CONFIG.redirectTo,
         userSession,
         onFinish: async (authData) => {
-            console.log('WalletConnect authentication finished:', authData);
+            log.debug('WalletConnect authentication finished');
             if (onFinish) {
                 onFinish(authData);
             }
         },
         onCancel: () => {
-            console.log('User cancelled WalletConnect connection');
+            log.debug('User cancelled WalletConnect connection');
             if (onCancel) {
                 onCancel();
             }
