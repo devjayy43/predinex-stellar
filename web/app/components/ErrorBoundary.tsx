@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('ErrorBoundary');
 
 import { Component, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';

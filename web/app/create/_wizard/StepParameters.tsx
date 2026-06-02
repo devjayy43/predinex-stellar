@@ -2,7 +2,7 @@
 
 import type { ChangeEvent, FocusEvent } from 'react';
 import type { CreateMarketDraft, FormErrors } from './useCreateWizard';
-import { getHelpText, MIN_POOL_DURATION_SECS, MAX_POOL_DURATION_SECS } from '../../lib/validators';
+import { getHelpText, MIN_POOL_DURATION_SECS, MAX_POOL_DURATION_SECS } from '@/lib/validators';
 
 interface StepParametersProps {
   draft: CreateMarketDraft;

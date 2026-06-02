@@ -7,7 +7,7 @@ import { Info, Trophy } from "lucide-react";
 import Leaderboard from "../../components/Leaderboard";
 import { useWallet } from "../components/WalletAdapterProvider";
 import { useLeaderboard } from "../lib/hooks/useLeaderboard";
-import { TOKEN_SYMBOL } from "../lib/formatting";
+import { TOKEN_SYMBOL } from "@/lib/formatting";
 
 export default function RewardsPage() {
   const { address: stxAddress } = useWallet();

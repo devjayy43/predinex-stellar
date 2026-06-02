@@ -1,15 +1,17 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('BettingSection');
 
 import { useState } from 'react';
 import { useToast } from '../../providers/ToastProvider';
 import { predinexContract } from '../lib/adapters/predinex-contract';
-import { Loader2, Wallet, AlertCircle } from 'lucide-react';
+import { Loader2, Wallet, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import type { Pool } from '@/app/lib/adapters/types';
 import { useWallet } from './WalletAdapterProvider';
 import { useNetworkMismatch } from '@/lib/hooks/useNetworkMismatch';
 import { TruncatedAddress } from '../../components/TruncatedAddress';
 import { invalidateOnPlaceBet } from '../lib/cache-invalidation';
-import { toastMessages, showToastPayload } from '../../lib/toast-messages';
+import { toastMessages, showToastPayload, MIN_BET_STX } from '../../lib/toast-messages';
 import { TransactionFeeModal } from './TransactionFeeModal';
 import { TxStage } from '../lib/soroban-transaction-service';
 
@@ -101,7 +103,7 @@ export default function BettingSection({ pool, poolId, onBetSuccess }: BettingSe
                 onBetSuccess(outcome, amountStroops);
             }
         } catch (error) {
-            console.error("Bet transaction failed:", error);
+            log.error("Bet transaction failed:", error);
             showToast(`Failed to place bet: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
             setIsBetting(false);
             setStage('idle');

@@ -2,7 +2,7 @@
 
 import type { ChangeEvent, FocusEvent } from 'react';
 import type { CreateMarketDraft, FormErrors } from './useCreateWizard';
-import { getHelpText } from '../../lib/validators';
+import { getHelpText } from '@/lib/validators';
 
 const MAX_TITLE = 100;
 const MAX_DESCRIPTION = 500;

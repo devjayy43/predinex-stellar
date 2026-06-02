@@ -222,14 +222,14 @@ async function simulateContractRead(
     });
 
     if (!response.ok) {
-      console.error(`Soroban RPC error: ${response.status}`);
+      log.error(`Soroban RPC error: ${response.status}`);
       return null;
     }
 
     const json = await response.json();
 
     if (json.error) {
-      console.error('Soroban RPC returned error:', json.error.message);
+      log.error('Soroban RPC returned error:', json.error.message);
       return null;
     }
 
@@ -251,7 +251,7 @@ async function simulateContractRead(
 
     return null;
   } catch (e) {
-    console.error(`Failed to simulate contract read for ${functionName}:`, e);
+    log.error(`Failed to simulate contract read for ${functionName}:`, e);
     return null;
   }
 }
@@ -314,7 +314,7 @@ function parseScVal(xdr: string): unknown {
         return xdr;
     }
   } catch (e) {
-    console.error('Failed to parse SCVal:', e);
+    log.error('Failed to parse SCVal:', e);
     return xdr;
   }
 }
@@ -588,7 +588,7 @@ export async function getPoolFromSoroban(
     return { pool };
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    console.error(`Failed to fetch pool ${poolId} from Soroban:`, error);
+    log.error(`Failed to fetch pool ${poolId} from Soroban:`, error);
     return { pool: null, error };
   }
 }
@@ -633,7 +633,7 @@ export async function getPoolsBatchFromSoroban(
     return pools;
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    console.error(`Failed to fetch pools batch (start: ${startId}, count: ${count}):`, error);
+    log.error(`Failed to fetch pools batch (start: ${startId}, count: ${count}):`, error);
     return [];
   }
 }
@@ -682,7 +682,7 @@ export async function getUserBetFromSoroban(
     return { bet };
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    console.error(`Failed to fetch user bet for pool ${poolId} from Soroban:`, error);
+    log.error(`Failed to fetch user bet for pool ${poolId} from Soroban:`, error);
     return { bet: null, error };
   }
 }
@@ -738,7 +738,7 @@ export async function getPoolBetLimitsFromSoroban(
     };
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    console.error(`Failed to fetch pool bet limits for pool ${poolId} from Soroban:`, error);
+    log.error(`Failed to fetch pool bet limits for pool ${poolId} from Soroban:`, error);
     return null;
   }
 }
@@ -773,7 +773,7 @@ export async function getPoolCountFromSoroban(
 
     return 0;
   } catch (e) {
-    console.error('Failed to fetch pool count from Soroban:', e);
+    log.error('Failed to fetch pool count from Soroban:', e);
     return 0;
   }
 }

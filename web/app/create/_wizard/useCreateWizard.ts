@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
-import { validateField, validatePoolCreationForm } from '../../lib/validators';
+import { validateField, validatePoolCreationForm } from '@/lib/validators';
 
 export const CREATE_MARKET_DRAFT_KEY = 'predinex_create_market_draft_v1';
 

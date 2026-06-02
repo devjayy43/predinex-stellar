@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('page');
 
 import { FormEvent, useState } from 'react';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
@@ -90,7 +92,7 @@ export default function CreateMarket() {
       invalidateOnCreatePool();
       showToast('Market created successfully!', 'success');
     } catch (error) {
-      console.error('Failed to create market:', error);
+      log.error('Failed to create market:', error);
       showToast(
         `Failed to create market: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'error'

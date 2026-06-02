@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('useUserDashboard');
 
 import { useState, useEffect, useCallback } from 'react';
 import type { DashboardStats, UserBet } from './types';
@@ -24,7 +26,7 @@ export function useUserDashboard(isWalletConnected: boolean, sessionConnected: b
       setBets(mockBets);
       setStats(calculateDashboardStats(mockBets));
     } catch (err) {
-      console.error('Failed to fetch user data:', err);
+      log.error('Failed to fetch user data:', err);
     } finally {
       setIsLoading(false);
     }

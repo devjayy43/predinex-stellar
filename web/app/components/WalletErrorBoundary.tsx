@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { logger } from '@/app/lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -37,7 +38,10 @@ export class WalletErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Wallet Error Boundary caught an error:', error, errorInfo);
+    logger.error('Wallet Error Boundary caught an error', 'WalletErrorBoundary', {
+      message: error.message,
+      componentStack: errorInfo.componentStack,
+    });
     
     this.setState({
       error,
@@ -63,12 +67,11 @@ export class WalletErrorBoundary extends Component<Props, State> {
   }
 
   private logErrorToService(error: Error, errorInfo: ErrorInfo) {
-    // In a real app, you'd send this to your error tracking service
-    console.log('Logging error to service:', {
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
+    // In a real app, send this to your error tracking service (e.g. Sentry).
+    // Logging here is intentionally suppressed to avoid leaking stack traces
+    // to browser consoles in production. Use logger.error for structured output.
+    logger.error('Error reported to service', 'WalletErrorBoundary', {
+      message: error.message,
     });
   }
 

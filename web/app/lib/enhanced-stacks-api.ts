@@ -5,6 +5,9 @@ import { fetchCallReadOnlyFunction, cvToValue, uintCV } from "@stacks/transactio
 import { PoolData } from "./market-types";
 import { getRuntimeConfig } from "./runtime-config";
 import { withRetry, RetryOptions } from "./retry";
+import { createScopedLogger } from "./logger";
+
+const log = createScopedLogger('enhanced-stacks-api');
 
 /** Default retry policy for market discovery API calls. */
 const MARKET_DISCOVERY_RETRY: RetryOptions = {
@@ -28,8 +31,8 @@ function logMarketDiscoveryNetworkOnce(): void {
   try {
     const cfg = getRuntimeConfig();
     const stacksNetwork = getStacksNetwork();
-    console.info(
-      `[market-discovery] network=${cfg.network} stacksApiBaseUrl=${stacksNetwork.client.baseUrl} contract=${cfg.contract.id}`
+    log.info(
+      `network=${cfg.network} stacksApiBaseUrl=${stacksNetwork.client.baseUrl} contract=${cfg.contract.id}`
     );
   } catch (e) {
     // If config is invalid/missing, fail-fast will throw elsewhere; avoid masking it here.
@@ -63,7 +66,7 @@ export async function getPoolCount(): Promise<number> {
     const value = cvToValue(result);
     return Number(value);
   } catch (e) {
-    console.error("Failed to fetch pool count after retries", e);
+    log.error('Failed to fetch pool count after retries', e);
     return 0;
   }
 }
@@ -114,7 +117,7 @@ export async function getEnhancedPool(poolId: number): Promise<PoolData | null> 
       disputed: Boolean(value.disputed ?? value['is-disputed'] ?? false),
     };
   } catch (e) {
-    console.error(`Failed to fetch pool ${poolId} after retries`, e);
+    log.error(`Failed to fetch pool ${poolId} after retries`, e);
     return null;
   }
 }
@@ -177,7 +180,7 @@ export async function getPoolsBatch(startId: number, count: number): Promise<Poo
 
     return pools;
   } catch (e) {
-    console.error(`Failed to fetch pools batch ${startId}-${startId + count} after retries`, e);
+    log.error(`Failed to fetch pools batch ${startId}-${startId + count} after retries`, e);
     // Fallback to individual fetching
     return await getPoolsIndividually(startId, count);
   }
@@ -295,7 +298,7 @@ export async function getPoolStats(poolId: number): Promise<{
       percentageB: Number(value['percentage-b'] || 0),
     };
   } catch (e) {
-    console.error(`Failed to fetch pool stats ${poolId}`, e);
+    log.error(`Failed to fetch pool stats ${poolId}`, e);
     return null;
   }
 }

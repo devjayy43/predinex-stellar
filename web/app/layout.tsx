@@ -5,7 +5,7 @@ import { WalletAdapterProvider } from "./components/WalletAdapterProvider";
 import { ToastProvider } from "../providers/ToastProvider";
 import { ThemeProvider, ThemeInitScript } from "../lib/theme";
 import { I18nProvider } from "./providers/I18nProvider";
-import Footer from "./components/Footer";
+import Footer from "@/components/Footer";
 import MarketListPreloader from "./components/MarketListPreloader";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";

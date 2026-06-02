@@ -1,8 +1,10 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('page');
 
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
-import BettingSection from "../../components/BettingSection";
+import BettingSection from "@/components/BettingSection";
 import ClaimWinningsButton from "../../../components/ClaimWinningsButton";
 import SettledPoolSummary from "../../components/SettledPoolSummary";
 import { useWallet } from "../../components/WalletAdapterProvider";
@@ -52,7 +54,7 @@ export default function PoolDetails({ params }: { params: Promise<{ id: string }
                 setPool(data);
             } catch (e) {
                 setError(e instanceof Error ? e.message : 'Failed to load pool');
-                console.error(`Failed to load pool ${poolId}:`, e);
+                log.error(`Failed to load pool ${poolId}:`, e);
             } finally {
                 setIsLoading(false);
             }
@@ -106,7 +108,7 @@ export default function PoolDetails({ params }: { params: Promise<{ id: string }
             setError(null);
         } catch (err) {
             const msg = err instanceof Error ? err.message : 'Failed to refresh pool data';
-            console.error("Failed to refresh pool data:", err);
+            log.error("Failed to refresh pool data:", err);
             // Don't overwrite existing pool data on refresh error
             setError(msg);
         } finally {

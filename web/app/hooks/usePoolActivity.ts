@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('usePoolActivity');
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { PoolActivityEvent } from '../lib/pool-activity';
@@ -86,7 +88,7 @@ export function usePoolActivity(poolId: number | undefined): UsePoolActivityRetu
 
       const message = err instanceof Error ? err.message : 'Failed to load pool activity';
       setError(message);
-      console.error(`Failed to load activity for pool ${poolId}:`, err);
+      log.error(`Failed to load activity for pool ${poolId}:`, err);
       setEvents([]);
     } finally {
       if (isMountedRef.current) {

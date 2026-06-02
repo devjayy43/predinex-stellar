@@ -11,6 +11,7 @@ import RouteErrorBoundary from '../../components/RouteErrorBoundary';
 import { EmptyState } from '../../components/EmptyState';
 import { DisconnectedState } from '../../components/DisconnectedState';
 import { TransactionFeeModal } from '../components/TransactionFeeModal';
+import ExportButton from '../../components/ExportButton';
 
 function StatsSkeleton() {
   return (
@@ -30,7 +31,7 @@ const PlatformStats = dynamic(() => import('../../components/PlatformStats'), {
   loading: () => <StatsSkeleton />,
 });
 
-const PortfolioOverview = dynamic(() => import('../../components/PortfolioOverview'), {
+const PortfolioOverview = dynamic(() => import('@/components/PortfolioOverview'), {
   loading: () => <CardSkeleton className="h-32 mb-8" />,
 });
 
@@ -91,6 +92,12 @@ function DashboardContent() {
           <h1 className="text-4xl font-black mb-8 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Institutional Dashboard
           </h1>
+
+          {stxAddress && (
+            <div className="mb-8">
+              <ExportButton address={stxAddress} />
+            </div>
+          )}
 
           <PlatformStats />
           <PortfolioOverview />
