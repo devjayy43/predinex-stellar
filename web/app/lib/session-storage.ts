@@ -145,44 +145,45 @@ export class SessionStorageService {
   }
 
   /**
-   * Get storage usage info
+   * Get storage usage info.
+   *
+   * Uses the async Storage API (navigator.storage.estimate) where available,
+   * with a synchronous fallback that only calculates already-used space by
+   * iterating existing localStorage keys — it no longer writes test data to
+   * localStorage, eliminating the previous 10 MB quota-filling side effect.
+   *
+   * Note: call the async variant `getStorageInfoAsync()` when you need the
+   * available-quota figure; this sync overload returns `available: 0` on
+   * browsers that lack the Storage API.
    */
   static getStorageInfo(): { used: number; available: number } {
     try {
-      const testKey = 'storage_test';
-      const testValue = 'x'.repeat(1024); // 1KB
       let used = 0;
-      let available = 0;
-
-      // Estimate used space
       for (const key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
-          used += localStorage[key].length + key.length;
+        if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
+          used += (localStorage[key]?.length ?? 0) + key.length;
         }
       }
-
-      // Estimate available space
-      try {
-        let i = 0;
-        while (i < 10000) { // Max 10MB test
-          localStorage.setItem(testKey + i, testValue);
-          available += testValue.length;
-          i++;
-        }
-      } catch (_e) {
-        // Storage full
-      } finally {
-        // Clean up test data
-        let i = 0;
-        while (localStorage.getItem(testKey + i)) {
-          localStorage.removeItem(testKey + i);
-          i++;
-        }
-      }
-
-      return { used, available };
-    } catch (_error) {
+      return { used, available: 0 };
+    } catch {
       return { used: 0, available: 0 };
     }
+  }
+
+  /**
+   * Async variant that uses navigator.storage.estimate() to determine both
+   * used and available quota without writing any test data to localStorage.
+   * Falls back to the sync getStorageInfo() on unsupported browsers.
+   */
+  static async getStorageInfoAsync(): Promise<{ used: number; available: number }> {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.storage?.estimate) {
+        const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+        return { used: usage, available: quota - usage };
+      }
+    } catch {
+      // Storage API unavailable — fall through to sync fallback
+    }
+    return this.getStorageInfo();
   }
 }
