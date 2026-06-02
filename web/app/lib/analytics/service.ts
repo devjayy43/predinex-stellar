@@ -111,7 +111,7 @@ class AnalyticsService {
 
     // Debug logging in development
     if (this.config.debug) {
-      console.info('[analytics]', event, payload.properties);
+      log.info('[analytics]', event, payload.properties);
     }
 
     // Skip emission if disabled
@@ -129,7 +129,7 @@ class AnalyticsService {
         });
       } catch (error) {
         // Never let analytics errors crash the app
-        console.error('[analytics] Failed to emit event:', error);
+        log.error('[analytics] Failed to emit event:', error);
       }
     }
   }

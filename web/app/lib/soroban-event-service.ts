@@ -20,6 +20,9 @@ import {
   notifyPoolSettled,
   notifyPayoutClaimed,
 } from './webhook-service';
+import { createScopedLogger } from './logger';
+
+const log = createScopedLogger('soroban-event-service');
 
 // ---------------------------------------------------------------------------
 // Event schema version (issue #175)
@@ -163,8 +166,8 @@ export function decodeSorobanEvent(raw: RawSorobanEvent): DecodedSorobanEvent | 
   // shape may have changed — refuse to decode rather than mis-decode.
   const schemaVersion = toString(topics[1]);
   if (schemaVersion !== SUPPORTED_EVENT_SCHEMA_VERSION) {
-    console.warn(
-      `[soroban-event-service] Skipping ${name} event with unsupported schema version "${schemaVersion ?? 'missing'}" (decoder pinned to "${SUPPORTED_EVENT_SCHEMA_VERSION}")`
+    log.warn(
+      `Skipping ${name} event with unsupported schema version "${schemaVersion ?? 'missing'}" (decoder pinned to "${SUPPORTED_EVENT_SCHEMA_VERSION}")`
     );
     return null;
   }
@@ -440,14 +443,14 @@ export async function getUserActivityFromSoroban(
     });
 
     if (!response.ok) {
-      console.error(`Soroban RPC error: ${response.status}`);
+      log.error(`Soroban RPC error: ${response.status}`);
       return [];
     }
 
     const json: GetEventsResponse = await response.json();
 
     if (json.error) {
-      console.error('Soroban RPC returned error:', json.error.message);
+      log.error('Soroban RPC returned error', json.error.message);
       return [];
     }
 
@@ -476,8 +479,8 @@ export async function getUserActivityFromSoroban(
 
       // Send webhook notifications (fire-and-forget, don't block activity feed)
       // Issue #314: webhook notifications for pool events
-      triggerWebhookNotification(decoded).catch(err => 
-        console.warn('[soroban-event-service] Webhook notification failed:', err)
+      triggerWebhookNotification(decoded).catch(err =>
+        log.warn(`Webhook notification failed: ${err instanceof Error ? err.message : err}`)
       );
     }
 
@@ -486,7 +489,7 @@ export async function getUserActivityFromSoroban(
 
     return items.slice(0, limit);
   } catch (e) {
-    console.error('Failed to fetch Soroban activity events:', e);
+    log.error('Failed to fetch Soroban activity events', e);
     return [];
   }
 }

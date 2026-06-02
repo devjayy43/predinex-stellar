@@ -62,13 +62,13 @@ export async function getUserBets(userAddress: string): Promise<UserBet[]> {
           }
         }
       } catch (error) {
-        console.error(`Failed to get user bet for pool ${pool.poolId}:`, error);
+        log.error(`Failed to get user bet for pool ${pool.poolId}`, error);
       }
     }
     
     return userBets;
   } catch (error) {
-    console.error('Failed to get user bets:', error);
+    log.error('Failed to get user bets', error);
     return [];
   }
 }
@@ -140,7 +140,7 @@ async function createUserBet(
       claimableAmount: claimableAmount > 0 ? claimableAmount : undefined
     };
   } catch (error) {
-    console.error('Failed to create user bet:', error);
+    log.error('Failed to create user bet', error);
     return null;
   }
 }
@@ -217,7 +217,7 @@ export async function fetchDashboardData(userAddress: string): Promise<Dashboard
       lastUpdated: Date.now()
     };
   } catch (error) {
-    console.error('Failed to fetch dashboard data:', error);
+    log.error('Failed to fetch dashboard data', error);
     throw error;
   }
 }

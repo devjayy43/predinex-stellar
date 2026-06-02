@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('useLeaderboard');
 
 import { useState, useEffect, useCallback } from 'react';
 

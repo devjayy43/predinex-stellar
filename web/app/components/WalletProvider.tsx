@@ -14,6 +14,9 @@ import { AppConfig, UserData, UserSession } from '@stacks/connect';
 import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { connectWallet, WalletType } from '../lib/wallet-connector';
 import WalletModal from './WalletModal';
+import { createScopedLogger } from '../lib/logger';
+
+const log = createScopedLogger('WalletProvider');
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
 const userSession = new UserSession({ appConfig });
@@ -74,7 +77,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
                     setUserData(userSession.loadUserData());
                 }
             } catch (error) {
-                console.error('Error initializing authentication:', error);
+                log.error('Error initializing authentication', error);
             } finally {
                 // Signal that the app is ready for interaction
                 setIsLoading(false);
@@ -113,25 +116,25 @@ export function WalletProvider({ children }: { children: ReactNode }) {
                 walletType,
                 userSession,
                 onFinish: async (authData) => {
-                    // Authentication successful
-                    console.log('Authentication finished:', authData);
+                    // Authentication successful — do not log authData (contains sensitive keys)
+                    log.debug('Authentication finished');
                     try {
                         // Crucial: Finalize the session after the wallet extension returns control
                         const userData = await userSession.handlePendingSignIn();
                         setUserData(userData);
-                        console.log('Wallet connected successfully');
+                        log.debug('Wallet connected successfully');
                     } catch (error) {
-                        console.error('Error handling sign in:', error);
+                        log.error('Error handling sign in', error);
                         // Fallback to refresh if session state becomes inconsistent
                         window.location.reload();
                     }
                 },
                 onCancel: () => {
-                    console.log('User cancelled wallet connection');
+                    log.debug('User cancelled wallet connection');
                 },
             });
         } catch (error: any) {
-            console.error('Wallet connection error:', error);
+            log.error(`Wallet connection error for ${walletType}`, error);
             const errorMessage = error?.message || 'Failed to connect. Please try again.';
             if (walletType === 'walletconnect' || errorMessage.toLowerCase().includes('unsupported')) {
                 setWalletError('Unsupported provider. Please use a Stellar-compatible wallet.');

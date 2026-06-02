@@ -4,6 +4,9 @@ import { useNetworkMismatch } from '@/lib/hooks/useNetworkMismatch';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
+import { createScopedLogger } from '@/app/lib/logger';
+
+const log = createScopedLogger('NetworkMismatchWarning');
 
 /**
  * A warning banner that appears when the connected wallet is on the wrong network.
@@ -24,7 +27,7 @@ export function NetworkMismatchWarning() {
     try {
       await switchNetwork();
     } catch (error) {
-      console.error('Failed to switch network:', error);
+      log.error('Failed to switch network', error);
     } finally {
       setIsSwitching(false);
     }

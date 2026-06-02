@@ -11,6 +11,9 @@ import { isWalletAvailable, WalletType } from '../lib/wallet-connector';
 import { useState, useEffect, useId, useRef } from 'react';
 import { useFocusTrap } from '../lib/hooks/useFocusTrap';
 import { useEscapeDismiss } from '../lib/hooks/useEscapeDismiss';
+import { createScopedLogger } from '../lib/logger';
+
+const log = createScopedLogger('WalletModal');
 
 interface WalletModalProps {
     isOpen: boolean;
@@ -54,7 +57,7 @@ export default function WalletModal({ isOpen, onClose, onSelectWallet, error, is
                 event_category: 'wallet_connection',
             });
         }
-        console.log(`User attempted to click unsupported wallet: ${walletId}`);
+    log.debug(`User attempted to click unsupported wallet: ${walletId}`);
     };
 
     // Derived directly from isOpen — no state or effect needed; isWalletAvailable is

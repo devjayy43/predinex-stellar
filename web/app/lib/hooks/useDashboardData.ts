@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('useDashboardData');
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardData, DashboardFilters, ClaimTransaction } from '../dashboard-types';
@@ -108,7 +110,7 @@ export function useDashboardData(userAddress: string | null): UseDashboardDataSt
         previousDataRef.current = dashboardData;
       }
     } catch (err) {
-      console.error('Failed to fetch dashboard data:', err);
+      log.error('Failed to fetch dashboard data:', err);
       
       if (isMountedRef.current) {
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
@@ -198,7 +200,7 @@ export function useDashboardData(userAddress: string | null): UseDashboardDataSt
         }));
       }
     } catch (err) {
-      console.error('Failed to execute claim:', err);
+      log.error('Failed to execute claim:', err);
       
       // Update claim status to failed
       setClaimTransactions(prev => new Map(prev).set(poolId, {

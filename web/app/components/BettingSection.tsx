@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('BettingSection');
 
 import { useState } from 'react';
 import { useToast } from '../../providers/ToastProvider';
@@ -101,7 +103,7 @@ export default function BettingSection({ pool, poolId, onBetSuccess }: BettingSe
                 onBetSuccess(outcome, amountStroops);
             }
         } catch (error) {
-            console.error("Bet transaction failed:", error);
+            log.error("Bet transaction failed:", error);
             showToast(`Failed to place bet: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
             setIsBetting(false);
             setStage('idle');

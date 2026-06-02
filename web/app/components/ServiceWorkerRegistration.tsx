@@ -1,4 +1,6 @@
 'use client';
+import { createScopedLogger } from '@/app/lib/logger';
+const log = createScopedLogger('ServiceWorkerRegistration');
 
 import { useEffect } from 'react';
 
@@ -15,7 +17,7 @@ export default function ServiceWorkerRegistration() {
 
     const register = () => {
       navigator.serviceWorker.register('/sw.js').catch((error) => {
-        console.error('[pwa] Service worker registration failed:', error);
+        log.error('[pwa] Service worker registration failed:', error);
       });
     };
 

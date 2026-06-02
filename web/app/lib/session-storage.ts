@@ -14,6 +14,9 @@
  */
 
 import { WalletSession } from './wallet-service';
+import { createScopedLogger } from './logger';
+
+const log = createScopedLogger('session-storage');
 
 export interface StoredSession {
   session: WalletSession;

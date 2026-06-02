@@ -223,7 +223,7 @@ export class WalletService {
 
       return result.txId;
     } catch (error) {
-      console.error('Transaction failed:', error);
+      log.error('Transaction failed:', error);
       throw error;
     }
   }
