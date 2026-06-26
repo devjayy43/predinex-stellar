@@ -4511,3 +4511,620 @@ fn h1_double_fee_fix_treasury_correct_with_multiple_winners() {
     assert_eq!(treasury, 12i128, "treasury must equal exactly 2% of total pool");
 }
 
+/// M1: create_pool emits an event with correct topics and payload.
+#[test]
+fn m1_create_pool_emits_pool_created_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    env.ledger().with_mut(|li| li.timestamp = 100);
+
+    let creator = Address::generate(&env);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Event Test Pool"),
+        &String::from_str(&env, "Testing create_pool event"),
+        &String::from_str(&env, "Yes"),
+        &String::from_str(&env, "No"),
+        &3600,
+    );
+
+    let events = env.events().all();
+    let event = events.events().last().expect("must emit create_pool event");
+
+    // Topics: [create_pool, pool_id]
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "create_pool"));
+    assert_eq!(topic1, pool_id);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::CreatePoolEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.creator, creator);
+    assert_eq!(payload.expiry, 3700);
+    assert_eq!(payload.title, String::from_str(&env, "Event Test Pool"));
+    assert_eq!(payload.outcome_a_name, String::from_str(&env, "Yes"));
+    assert_eq!(payload.outcome_b_name, String::from_str(&env, "No"));
+}
+
+/// M2: place_bet emits an event with correct topics and payload.
+#[test]
+fn m2_place_bet_emits_bet_placed_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    let creator = Address::generate(&env);
+    let user = Address::generate(&env);
+    token_admin_client.mint(&user, &1000);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Bet Event Pool"),
+        &String::from_str(&env, "Testing place_bet event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    client.place_bet(&user, &pool_id, &0, &500, &None::<Address>);
+
+    let events = env.events().all();
+    // The place_bet event is the last one emitted by place_bet
+    let event = events.events().last().expect("must emit place_bet event");
+
+    // Topics: [place_bet, event_version, pool_id, user]
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+    let topic3: Address =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 3)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "place_bet"));
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+    assert_eq!(topic2, pool_id);
+    assert_eq!(topic3, user);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::BetEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.outcome, 0);
+    assert_eq!(payload.amount, 500);
+    assert_eq!(payload.total_yes, 500);
+    assert_eq!(payload.total_no, 0);
+}
+
+/// M3: settle_pool emits an event with correct topics and payload.
+#[test]
+fn m3_settle_pool_emits_settle_pool_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    env.ledger().with_mut(|li| li.timestamp = 100);
+
+    let creator = Address::generate(&env);
+    let user = Address::generate(&env);
+    token_admin_client.mint(&user, &1000);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Settle Event Pool"),
+        &String::from_str(&env, "Testing settle_pool event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    client.place_bet(&user, &pool_id, &0, &500, &None::<Address>);
+
+    env.ledger().with_mut(|li| li.timestamp = 4000);
+
+    client.settle_pool(&creator, &pool_id, &0);
+
+    let events = env.events().all();
+    let event = events.events().last().expect("must emit settle_pool event");
+
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "settle_pool"));
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+    assert_eq!(topic2, pool_id);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::SettlePoolEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.caller, creator);
+    assert_eq!(payload.winning_outcome, 0);
+    assert_eq!(payload.winning_side_total, 500);
+    assert_eq!(payload.total_pool_volume, 500);
+    assert_eq!(payload.fee_amount, 10); // 2% of 500
+    assert_eq!(payload.source, crate::SettlementSource::Creator);
+}
+
+/// M4: claim_winnings emits an event with correct topics and payload.
+#[test]
+fn m4_claim_winnings_emits_claim_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    env.ledger().with_mut(|li| li.timestamp = 100);
+
+    let creator = Address::generate(&env);
+    let user = Address::generate(&env);
+    token_admin_client.mint(&user, &1000);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Claim Event Pool"),
+        &String::from_str(&env, "Testing claim_winnings event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    client.place_bet(&user, &pool_id, &0, &500, &None::<Address>);
+
+    env.ledger().with_mut(|li| li.timestamp = 4000);
+    client.settle_pool(&creator, &pool_id, &0);
+
+    client.claim_winnings(&user, &pool_id);
+
+    let events = env.events().all();
+    let event = events
+        .events()
+        .last()
+        .expect("must emit claim_winnings event");
+
+    // claim_winnings topics: (Symbol("claim_winnings"), pool_id, user) — no event version
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: Address =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "claim_winnings"));
+    assert_eq!(topic1, pool_id);
+    assert_eq!(topic2, user);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::ClaimEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    // total = 500, fee = 2% = 10, net = 490, user staked all 500 on winning side → wins 490
+    assert_eq!(payload.winning_outcome, 0);
+    assert_eq!(payload.total_pool_size, 500);
+    assert_eq!(payload.fee_amount, 10);
+    assert_eq!(payload.amount, 490);
+}
+
+/// M5: cancel_bet emits an event with correct topics and payload.
+#[test]
+fn m5_cancel_bet_emits_bet_cancelled_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    let creator = Address::generate(&env);
+    let user = Address::generate(&env);
+    token_admin_client.mint(&user, &1000);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Cancel Bet Event Pool"),
+        &String::from_str(&env, "Testing cancel_bet event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    client.place_bet(&user, &pool_id, &0, &500, &None::<Address>);
+    client.cancel_bet(&user, &pool_id, &0, &200);
+
+    let events = env.events().all();
+    let event = events
+        .events()
+        .last()
+        .expect("must emit bet_cancelled event");
+
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+    let topic3: Address =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 3)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "bet_cancelled"));
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+    assert_eq!(topic2, pool_id);
+    assert_eq!(topic3, user);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::BetCancelledEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.user, user);
+    assert_eq!(payload.pool_id, pool_id);
+    assert_eq!(payload.outcome, 0);
+    assert_eq!(payload.amount, 200);
+}
+
+/// M6: extend_pool_duration emits an event with correct topics and payload.
+#[test]
+fn m6_extend_pool_duration_emits_pool_duration_extended_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    env.ledger().with_mut(|li| li.timestamp = 100);
+
+    let creator = Address::generate(&env);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Extend Event Pool"),
+        &String::from_str(&env, "Testing extend_pool_duration event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    // current expiry = 100 + 3600 = 3700; extend by 1800 → new expiry = 5500
+    client.extend_pool_duration(&creator, &pool_id, &1800);
+
+    let events = env.events().all();
+    let event = events
+        .events()
+        .last()
+        .expect("must emit pool_duration_extended event");
+
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+
+    assert_eq!(
+        topic0,
+        soroban_sdk::Symbol::new(&env, "pool_duration_extended")
+    );
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+    assert_eq!(topic2, pool_id);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::PoolDurationExtendedEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.creator, creator);
+    assert_eq!(payload.new_expiry, 5500); // 100 + 3600 + 1800
+}
+
+/// M7: place_bet with referrer emits a referral_bet event with correct topics and payload.
+#[test]
+fn m7_place_bet_with_referrer_emits_referral_bet_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    let creator = Address::generate(&env);
+    let user = Address::generate(&env);
+    let referrer = Address::generate(&env);
+    token_admin_client.mint(&user, &1000);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Referral Bet Event Pool"),
+        &String::from_str(&env, "Testing referral_bet event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    client.place_bet(&user, &pool_id, &0, &500, &Some(referrer.clone()));
+
+    let events = env.events().all();
+    // referral_bet is emitted after place_bet within the same call
+    let event = events
+        .events()
+        .last()
+        .expect("must emit referral_bet event");
+
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "referral_bet"));
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+    assert_eq!(topic2, pool_id);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::ReferralBetEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.referrer, referrer);
+    assert_eq!(payload.pool_id, pool_id);
+    assert_eq!(payload.outcome, 0);
+    assert_eq!(payload.amount, 500);
+}
+
+/// M8: claim_referral_rewards emits an event with correct topics and payload.
+#[test]
+fn m8_claim_referral_rewards_emits_referral_reward_claimed_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    // Enable referral rewards: 100 bps = 1%
+    client.set_referral_bps(&treasury_recipient, &100);
+
+    let creator = Address::generate(&env);
+    let user = Address::generate(&env);
+    let referrer = Address::generate(&env);
+    token_admin_client.mint(&user, &1000);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "Referral Claim Event Pool"),
+        &String::from_str(&env, "Testing claim_referral_rewards event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    // 1% of 500 = 5 tokens credited to referrer
+    client.place_bet_with_referral(&user, &pool_id, &0, &500, &referrer);
+    client.claim_referral_rewards(&referrer);
+
+    let events = env.events().all();
+    let event = events
+        .events()
+        .last()
+        .expect("must emit referral_reward_claimed event");
+
+    // referral_reward_claimed topics: (Symbol, version) — only 2 topics
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+
+    assert_eq!(
+        topic0,
+        soroban_sdk::Symbol::new(&env, "referral_reward_claimed")
+    );
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::ReferralRewardClaimedEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.referrer, referrer);
+    assert_eq!(payload.amount, 5); // 1% of 500
+}
+
+/// M9: update_twap emits an event with correct topics and payload.
+#[test]
+fn m9_update_twap_emits_twap_updated_event() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_admin = Address::generate(&env);
+    let token_id = env.register_stellar_asset_contract_v2(token_admin.clone());
+    let token_admin_client = token::StellarAssetClient::new(&env, &token_id.address());
+
+    let contract_id = env.register(PredinexContract, ());
+    let client = PredinexContractClient::new(&env, &contract_id);
+
+    let treasury_recipient = Address::generate(&env);
+    client.initialize(&token_id.address(), &treasury_recipient);
+
+    env.ledger().with_mut(|li| li.timestamp = 1000);
+
+    let creator = Address::generate(&env);
+    let user_a = Address::generate(&env);
+    let user_b = Address::generate(&env);
+    token_admin_client.mint(&user_a, &500);
+    token_admin_client.mint(&user_b, &500);
+
+    let pool_id = client.create_pool(
+        &creator,
+        &String::from_str(&env, "TWAP Event Pool"),
+        &String::from_str(&env, "Testing update_twap event"),
+        &String::from_str(&env, "A"),
+        &String::from_str(&env, "B"),
+        &3600,
+    );
+
+    // 400 on A, 100 on B → odds[0]=8000, odds[1]=2000
+    client.place_bet(&user_a, &pool_id, &0, &400, &None::<Address>);
+    client.place_bet(&user_b, &pool_id, &1, &100, &None::<Address>);
+
+    // Advance past MIN_UPDATE_INTERVAL (60 s)
+    env.ledger().with_mut(|li| li.timestamp = 1070);
+
+    client.update_twap(&pool_id);
+
+    let events = env.events().all();
+    let event = events
+        .events()
+        .last()
+        .expect("must emit twap_updated event");
+
+    let topic0: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 0)).unwrap();
+    let topic1: soroban_sdk::Symbol =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 1)).unwrap();
+    let topic2: u32 =
+        soroban_sdk::TryFromVal::try_from_val(&env, &xdr_topic_val(&env, event, 2)).unwrap();
+
+    assert_eq!(topic0, soroban_sdk::Symbol::new(&env, "twap_updated"));
+    assert_eq!(topic1, soroban_sdk::Symbol::new(&env, EVENT_SCHEMA_VERSION));
+    assert_eq!(topic2, pool_id);
+
+    let data_val: Val = match &event.body {
+        soroban_sdk::xdr::ContractEventBody::V0(v0) => {
+            <Val as soroban_sdk::TryFromVal<Env, soroban_sdk::xdr::ScVal>>::try_from_val(
+                &env, &v0.data,
+            )
+            .unwrap()
+        }
+    };
+    let payload: crate::TwapUpdatedEvent =
+        soroban_sdk::TryFromVal::try_from_val(&env, &data_val).unwrap();
+
+    assert_eq!(payload.timestamp, 1070);
+    assert_eq!(payload.odds.len(), 2);
+    assert_eq!(payload.odds.get(0).unwrap(), 8000); // 400/500 * 10000
+    assert_eq!(payload.odds.get(1).unwrap(), 2000); // 100/500 * 10000
+}
+

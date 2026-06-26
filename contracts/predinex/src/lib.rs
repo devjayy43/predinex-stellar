@@ -187,6 +187,12 @@ pub enum DataKey {
     /// `claim_multi_asset_winnings` call. Treasury collects it via
     /// `collect_multi_asset_fees`.
     PoolTokenFeePending(u32, Address),
+    /// #420 — Referral reward basis points (shared from protocol fee).
+    ReferralBps,
+    /// #420 — Accumulated referral rewards balance per referrer address.
+    ReferralBalance(Address),
+    /// #420 — Total volume generated through referrals across all referrers.
+    TotalReferralVolume,
 }
 
 // #189 — TTL bump policy for persistent storage entries.
@@ -325,6 +331,16 @@ pub enum ContractError {
     /// #481 — The pool is multi-asset; callers must use
     /// `claim_multi_asset_winnings` instead of `claim_winnings`.
     MultiAssetClaimRequired = 57,
+    /// Bet amount is below the pool's minimum bet limit.
+    BetBelowMinBet = 58,
+    /// Bet amount is above the pool's maximum bet limit.
+    BetAboveMaxBet = 59,
+    /// User has no winning bets to claim.
+    NoWinningBets = 60,
+    /// Referrer cannot refer themselves.
+    SelfReferral = 61,
+    /// No referral rewards available to claim.
+    NoReferralRewards = 62,
 }
 
 /// #176 — Settlement source tag indicating who initiated pool settlement.
@@ -5167,15 +5183,15 @@ impl PredinexContract {
             Err(_) => return ClaimPreview::Unclaimable,
         };
         let fee_bps = Self::pool_effective_fee_bps(&env, pool_id);
-        let fee = total_pool_balance
-            .checked_mul(fee_bps)
-            .ok_or(ContractError::PoolTotalOverflow)?
-            / 10000;
+        let fee = match total_pool_balance.checked_mul(fee_bps) {
+            Some(f) => f / 10000,
+            None => return ClaimPreview::Unclaimable,
+        };
         let net_pool_balance = total_pool_balance - fee;
-        let amount = user_winning_bet
-            .checked_mul(net_pool_balance)
-            .ok_or(ContractError::PoolTotalOverflow)?
-            / pool_winning_total;
+        let amount = match user_winning_bet.checked_mul(net_pool_balance) {
+            Some(a) => a / pool_winning_total,
+            None => return ClaimPreview::Unclaimable,
+        };
 
         ClaimPreview::Claimable(amount)
     }
