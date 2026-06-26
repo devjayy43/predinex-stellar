@@ -143,18 +143,18 @@ export class WalletService {
   }
 
   /**
-   * Connect with Xverse (placeholder - would use Xverse SDK)
+   * Connect with Xverse wallet.
+   * Not yet implemented — requires the Xverse SDK.
    */
   private async connectWithXverse(): Promise<FinishedAuthData> {
-    // This would integrate with Xverse's specific connection method
     throw new Error('Xverse integration not yet implemented');
   }
 
   /**
-   * Connect with Leather (placeholder - would use Leather SDK)
+   * Connect with Leather wallet.
+   * Not yet implemented — requires the Leather SDK.
    */
   private async connectWithLeather(): Promise<FinishedAuthData> {
-    // This would integrate with Leather's specific connection method
     throw new Error('Leather integration not yet implemented');
   }
 

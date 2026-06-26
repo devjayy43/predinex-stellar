@@ -49,5 +49,3 @@ export default function Home() {
     </main>
   );
 }
-// Optimized for performance
-// Refined animations
