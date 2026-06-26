@@ -246,7 +246,13 @@ export async function fetchCurrentBlockHeightLive(options?: {
 
     writeBlockHeightCache(height);
     return { height, warning: null };
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      // Expected: the timeout above intentionally aborts the request. The
+      // fallback cache already covers this case, so no warning is needed.
+      return { height: getCurrentBlockHeight(), warning: null };
+    }
+
     const fallbackHeight = getCurrentBlockHeight();
     const warning =
       fallbackHeight > 0

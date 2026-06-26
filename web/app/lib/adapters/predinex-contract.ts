@@ -1,11 +1,8 @@
 /**
- * Write-side adapter: Stacks Connect contract calls for the Predinex pool contract.
- * Keeps wallet prompt details, Clarity encoding, and contract identity out of UI components.
+ * Write-side adapter: Soroban contract calls for the Predinex pool contract.
+ * Keeps wallet prompt details, argument encoding, and contract identity out of UI components.
  */
-import type { Finished } from '@stacks/connect';
-import { PostConditionMode, uintCV, stringAsciiCV, type PostCondition } from '@stacks/transactions';
 import { getRuntimeConfig } from '../runtime-config';
-import { callContract } from '../../../lib/appkit-transactions';
 import { SorobanTransactionService, TxStage } from '../soroban-transaction-service';
 import { FreighterWalletClient } from '../freighter-adapter';
 
@@ -20,90 +17,6 @@ function getSorobanService() {
 }
 
 export const predinexContract = {
-  /**
-   * Submit a `place-bet` contract call (wallet prompt).
-   */
-  async placeBet(params: {
-    poolId: number;
-    outcome: number;
-    amountMicroStx: number;
-    postConditions?: PostCondition[];
-    postConditionMode?: PostConditionMode;
-    onFinish?: Finished;
-    onCancel?: () => void;
-  }): Promise<void> {
-    const cfg = getRuntimeConfig();
-    const { contract } = cfg;
-    await callContract({
-      contractAddress: contract.address,
-      contractName: contract.name,
-      functionName: 'place-bet',
-      functionArgs: [uintCV(params.poolId), uintCV(params.outcome), uintCV(params.amountMicroStx)],
-      network: cfg.network,
-      postConditions: params.postConditions,
-      postConditionMode: params.postConditionMode ?? PostConditionMode.Deny,
-      onFinish: params.onFinish,
-      onCancel: params.onCancel,
-    });
-  },
-
-  /**
-   * Submit a `claim-winnings` contract call via the shared AppKit/network-aware path.
-   */
-  async claimWinnings(params: {
-    poolId: number;
-    onFinish?: Finished;
-    onCancel?: () => void;
-  }): Promise<void> {
-    const cfg = getRuntimeConfig();
-    const { contract } = cfg;
-    await callContract({
-      contractAddress: contract.address,
-      contractName: contract.name,
-      functionName: 'claim-winnings',
-      functionArgs: [uintCV(params.poolId)],
-      network: cfg.network,
-      postConditionMode: PostConditionMode.Deny,
-      onFinish: params.onFinish,
-      onCancel: params.onCancel,
-    });
-  },
-
-  /**
-   * Submit a `create-pool` contract call (wallet prompt).
-   */
-  async createMarket(params: {
-    title: string;
-    description: string;
-    outcomeA: string;
-    outcomeB: string;
-    durationSeconds: number;
-    postConditions?: PostCondition[];
-    postConditionMode?: PostConditionMode;
-    onFinish?: Finished;
-    onCancel?: () => void;
-  }): Promise<void> {
-    const cfg = getRuntimeConfig();
-    const { contract } = cfg;
-    await callContract({
-      contractAddress: contract.address,
-      contractName: contract.name,
-      functionName: 'create-pool',
-      functionArgs: [
-        stringAsciiCV(params.title),
-        stringAsciiCV(params.description),
-        stringAsciiCV(params.outcomeA),
-        stringAsciiCV(params.outcomeB),
-        uintCV(params.durationSeconds),
-      ],
-      network: cfg.network,
-      postConditions: params.postConditions,
-      postConditionMode: params.postConditionMode ?? PostConditionMode.Deny,
-      onFinish: params.onFinish,
-      onCancel: params.onCancel,
-    });
-  },
-
   /**
    * Submit a `create_pool` Soroban contract call (wallet prompt).
    */

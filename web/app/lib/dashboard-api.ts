@@ -5,8 +5,7 @@ import { STACKS_MAINNET, STACKS_TESTNET, type StacksNetwork } from "@stacks/netw
 import { UserBet, BetHistory, DashboardData } from "./dashboard-types";
 import { PoolData } from "./market-types";
 import { fetchAllPools, getEnhancedPool } from "./enhanced-stacks-api";
-import { predinexContract } from "./adapters/predinex-contract";
-import { 
+import {
   calculatePortfolio, 
   calculatePotentialWinnings, 
   calculateActualWinnings,
@@ -230,29 +229,4 @@ export async function fetchDashboardData(userAddress: string): Promise<Dashboard
 export async function getClaimableWinnings(userAddress: string): Promise<UserBet[]> {
   const userBets = await getUserBets(userAddress);
   return userBets.filter(isClaimEligible);
-}
-
-/**
- * Execute claim transaction for a specific pool
- */
-export async function claimWinnings(poolId: number): Promise<{ success: boolean; txId?: string; error?: string }> {
-  try {
-    const txId = await new Promise<string>((resolve, reject) => {
-      void predinexContract.claimWinnings({
-        poolId,
-        onFinish: (data) => resolve(data.txId),
-        onCancel: () => reject(new Error('Transaction cancelled')),
-      }).catch(reject);
-    });
-
-    return {
-      success: true,
-      txId
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
-  }
 }

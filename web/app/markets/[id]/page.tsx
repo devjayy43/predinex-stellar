@@ -278,15 +278,25 @@ export default function PoolDetails({ params }: { params: Promise<{ id: string }
 
                     {/* Odds Display */}
                     <div className="mb-8">
-                        <p className="text-sm text-muted-foreground mb-2">Current Odds</p>
-                        <div className="flex h-4 rounded-full overflow-hidden">
+                        <p className="text-sm text-muted-foreground mb-2" id="odds-bar-label">Current Odds</p>
+                        <div
+                            className="flex h-4 rounded-full overflow-hidden"
+                            role="progressbar"
+                            aria-labelledby="odds-bar-label"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={Number(oddsA)}
+                            aria-valuetext={`${pool.outcomeA}: ${oddsA}%, ${pool.outcomeB}: ${oddsB}%`}
+                        >
                             <div
                                 className="bg-green-500 transition-all"
                                 style={{ width: `${oddsA}%` }}
+                                aria-hidden="true"
                             />
                             <div
                                 className="bg-red-500 transition-all"
                                 style={{ width: `${oddsB}%` }}
+                                aria-hidden="true"
                             />
                         </div>
                         <div className="flex justify-between mt-2 text-sm">
