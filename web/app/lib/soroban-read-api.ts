@@ -18,23 +18,43 @@ import type { Pool, UserBetData } from './stacks-api';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Runtime configuration for Soroban RPC read operations.
+ */
 export interface SorobanReadConfig {
+  /** Soroban RPC endpoint URL (e.g. `https://soroban-testnet.stellar.org`). */
   rpcUrl: string;
+  /** Deployed contract ID in `C...` strkey format. */
   contractId: string;
 }
 
+/**
+ * Result wrapper returned by single-pool Soroban reads.
+ */
 export interface PoolReadResult {
+  /** Normalized pool data, or `null` when the pool is missing or unreadable. */
   pool: Pool | null;
+  /** Human-readable error message when the read fails. */
   error?: string;
 }
 
+/**
+ * Result wrapper returned by user-bet Soroban reads.
+ */
 export interface UserBetReadResult {
+  /** User stake breakdown, or `null` when no bet exists or the read fails. */
   bet: UserBetData | null;
+  /** Human-readable error message when the read fails. */
   error?: string;
 }
 
+/**
+ * Per-pool minimum and maximum bet amounts enforced by the Soroban contract.
+ */
 export interface PoolBetLimits {
+  /** Minimum bet in raw token units (stroops). */
   minBet: number;
+  /** Maximum bet in raw token units (stroops); `0` may mean unlimited. */
   maxBet: number;
 }
 
@@ -543,8 +563,17 @@ function normalizeUserBet(raw: RawSorobanUserBet | null): UserBetData | null {
 }
 
 /**
- * Get pool data from the Soroban contract.
- * Returns null if the pool doesn't exist or on error.
+ * Reads a single pool from the Soroban contract via `get_pool`.
+ *
+ * @param poolId - Numeric pool identifier (1-based in the Predinex contract).
+ * @param config - Optional RPC/contract override; defaults to `getRuntimeConfig().soroban`.
+ * @returns {@link PoolReadResult} with normalized pool data or an error message.
+ *
+ * @example
+ * ```ts
+ * const { pool, error } = await getPoolFromSoroban(1);
+ * if (pool) console.log(pool.title);
+ * ```
  */
 export async function getPoolFromSoroban(
   poolId: number,
@@ -594,8 +623,20 @@ export async function getPoolFromSoroban(
 }
 
 /**
- * Fetch multiple pools in a single batch call via get_pools_batch.
- * Reduces RPC calls from N+1 to 2 (pool count + batch fetch).
+ * Reads a contiguous range of pools in one RPC call via `get_pools_batch`.
+ *
+ * Reduces round-trips from N individual reads to a single batch simulation.
+ *
+ * @param startId - First pool ID in the range (inclusive).
+ * @param count - Number of consecutive pools to fetch.
+ * @param config - Optional RPC/contract override; defaults to `getRuntimeConfig().soroban`.
+ * @returns Array of normalized pools; shorter than `count` when some slots are empty.
+ *
+ * @example
+ * ```ts
+ * const total = await getPoolCountFromSoroban();
+ * const pools = await getPoolsBatchFromSoroban(1, total);
+ * ```
  */
 export async function getPoolsBatchFromSoroban(
   startId: number,
@@ -639,8 +680,12 @@ export async function getPoolsBatchFromSoroban(
 }
 
 /**
- * Get user bet data from the Soroban contract.
- * Returns null if no bet exists or on error.
+ * Reads a user's stake for a pool via `get_user_bet`.
+ *
+ * @param poolId - Numeric pool identifier.
+ * @param userAddress - Stellar account address (`G...` strkey).
+ * @param config - Optional RPC/contract override; defaults to `getRuntimeConfig().soroban`.
+ * @returns {@link UserBetReadResult} with per-outcome amounts or an error message.
  */
 export async function getUserBetFromSoroban(
   poolId: number,
@@ -688,8 +733,11 @@ export async function getUserBetFromSoroban(
 }
 
 /**
- * Get per-pool bet limits from the Soroban contract.
- * Returns null if the pool doesn't exist or on error.
+ * Reads per-pool bet limits via `get_pool_bet_limits`.
+ *
+ * @param poolId - Numeric pool identifier.
+ * @param config - Optional RPC/contract override; defaults to `getRuntimeConfig().soroban`.
+ * @returns Min/max bet limits, or `null` when the pool is missing or the read fails.
  */
 export async function getPoolBetLimitsFromSoroban(
   poolId: number,
@@ -744,7 +792,10 @@ export async function getPoolBetLimitsFromSoroban(
 }
 
 /**
- * Get the total pool count from the Soroban contract.
+ * Reads the total number of pools via `get_pool_count`.
+ *
+ * @param config - Optional RPC/contract override; defaults to `getRuntimeConfig().soroban`.
+ * @returns Total pool count, or `0` when unconfigured or on RPC failure.
  */
 export async function getPoolCountFromSoroban(
   config?: SorobanReadConfig
@@ -794,8 +845,15 @@ function getSorobanConfig(): SorobanReadConfig {
 // ---------------------------------------------------------------------------
 
 /**
- * Canonical Soroban read API for pool data.
- * Use this for all pool and user bet reads from the Stellar/Soroban chain.
+ * Canonical Soroban read API object for pool and user-bet data.
+ *
+ * Prefer this namespace (or the named exports) over deprecated Stacks reads in `stacks-api.ts`.
+ *
+ * @example
+ * ```ts
+ * const count = await sorobanReadApi.getPoolCount();
+ * const { pool } = await sorobanReadApi.getPool(1);
+ * ```
  */
 export const sorobanReadApi = {
   getPool: getPoolFromSoroban,
@@ -805,4 +863,5 @@ export const sorobanReadApi = {
   getPoolsBatch: getPoolsBatchFromSoroban,
 };
 
+/** Shared pool and bet types used by both legacy Stacks and Soroban read layers. */
 export type { Pool, UserBetData };

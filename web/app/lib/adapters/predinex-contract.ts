@@ -89,6 +89,24 @@ export const predinexContract = {
 
   /**
    * Submit a `set_pool_bet_limits` Soroban contract call (admin/treasury).
+   *
+   * @param params.wallet - Connected Freighter wallet client
+   * @param params.poolId - ID of the pool to update
+   * @param params.minBetStroops - New minimum bet size, in stroops
+   * @param params.maxBetStroops - New maximum bet size, in stroops
+   * @param params.onStageChange - Optional callback for transaction stage updates
+   * @param params.onFeeEstimated - Optional callback to approve/reject the estimated fee
+   * @returns The transaction hash
+   *
+   * @example
+   * ```ts
+   * const { txHash } = await predinexContract.setPoolBetLimitsSoroban({
+   *   wallet,
+   *   poolId: 12,
+   *   minBetStroops: 1_000_000,
+   *   maxBetStroops: 100_000_000,
+   * });
+   * ```
    */
   async setPoolBetLimitsSoroban(params: {
     wallet: FreighterWalletClient;
@@ -175,7 +193,23 @@ export const predinexContract = {
   },
 
   /**
-   * Submit a `settle_pool` Soroban contract call (wallet prompt).
+   * Submit a `settle_pool` Soroban contract call (admin/treasury).
+   *
+   * @param params.wallet - Connected Freighter wallet client
+   * @param params.poolId - ID of the pool being settled
+   * @param params.winningOutcome - Index of the outcome declared as the winner (0 or 1)
+   * @param params.onStageChange - Optional callback for transaction stage updates
+   * @param params.onFeeEstimated - Optional callback to approve/reject the estimated fee
+   * @returns The transaction hash
+   *
+   * @example
+   * ```ts
+   * const { txHash } = await predinexContract.settlePoolSoroban({
+   *   wallet,
+   *   poolId: 12,
+   *   winningOutcome: 0,
+   * });
+   * ```
    */
   async settlePoolSoroban(params: {
     wallet: FreighterWalletClient;
