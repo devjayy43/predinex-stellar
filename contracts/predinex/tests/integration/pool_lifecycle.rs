@@ -332,3 +332,20 @@ fn m2_get_pools_batch_lifecycle() {
         assert!(batch.get(i).unwrap().is_some(), "pool at index {i} must exist");
     }
 }
+
+/// M9: rescue_tokens rejects non-admin callers.
+#[test]
+fn m9_rescue_tokens_rejects_non_admin() {
+    use predinex::ContractError;
+    let ctx = setup();
+    let non_admin = Address::generate(&ctx.env);
+    let to = Address::generate(&ctx.env);
+
+    let result = ctx.client.try_rescue_tokens(
+        &non_admin,
+        &ctx.token.address(),
+        &to,
+        &100i128,
+    );
+    assert_eq!(result, Err(Ok(ContractError::Unauthorized)));
+}

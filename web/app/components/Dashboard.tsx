@@ -39,7 +39,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTabId>('overview');
 
   const sessionConnected = !!session?.isConnected;
-  const { stats, bets, isLoading, fetchUserData } = useUserDashboard(isConnected, sessionConnected);
+  const { stats, bets, isLoading, fetchUserData } = useUserDashboard(isConnected, sessionConnected, address || session?.address);
 
   if (!sessionConnected && !isConnected) {
     return <DashboardConnectPrompt />;

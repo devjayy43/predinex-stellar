@@ -40,7 +40,7 @@ export async function getUserBets(userAddress: string): Promise<UserBet[]> {
         const result = await fetchCallReadOnlyFunction({
           contractAddress: cfg.contract.address,
           contractName: cfg.contract.name,
-          functionName: 'get-user-bet',
+          functionName: 'get_user_bet',
           functionArgs: [uintCV(pool.poolId), principalCV(userAddress)],
           senderAddress: cfg.contract.address,
           network,

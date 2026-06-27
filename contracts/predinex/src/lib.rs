@@ -6074,6 +6074,41 @@ impl PredinexContract {
         Ok(total_norm_paid)
     }
 
+    /// Rescue tokens accidentally sent directly to the contract address.
+    ///
+    /// Transfers `amount` of `token` from the contract balance to `to`.
+    /// Only the treasury recipient (admin) may call this. Emits a
+    /// `tokens_rescued` event on success.
+    ///
+    /// This is a best-effort safety valve: the admin is trusted to only
+    /// rescue tokens that are not currently locked in active pools.
+    pub fn rescue_tokens(
+        env: Env,
+        caller: Address,
+        token: Address,
+        to: Address,
+        amount: i128,
+    ) -> Result<(), ContractError> {
+        caller.require_auth();
+        Self::require_treasury_recipient(&env, &caller)?;
+
+        token::Client::new(&env, &token).transfer(
+            &env.current_contract_address(),
+            &to,
+            &amount,
+        );
+
+        env.events().publish(
+            (
+                Symbol::new(&env, "tokens_rescued"),
+                event_version(&env),
+            ),
+            (token, to, amount),
+        );
+
+        Ok(())
+    }
+
     /// Transfer accumulated per-token fees to the treasury recipient.
     ///
     /// Call this after the first `claim_multi_asset_winnings` on a pool has

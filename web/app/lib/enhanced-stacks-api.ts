@@ -57,7 +57,7 @@ export async function getPoolCount(): Promise<number> {
         fetchCallReadOnlyFunction({
           contractAddress: cfg.contract.address,
           contractName: cfg.contract.name,
-          functionName: 'get-pool-count',
+          functionName: 'get_pool_count',
           functionArgs: [],
           senderAddress: cfg.contract.address,
           network,
@@ -92,7 +92,7 @@ export async function getEnhancedPool(poolId: number): Promise<PoolData | null> 
         fetchCallReadOnlyFunction({
           contractAddress: cfg.contract.address,
           contractName: cfg.contract.name,
-          functionName: 'get-pool',
+          functionName: 'get_pool',
           functionArgs: [uintCV(poolId)],
           senderAddress: cfg.contract.address,
           network,
@@ -153,7 +153,7 @@ export async function getPoolsBatch(startId: number, count: number): Promise<Poo
         fetchCallReadOnlyFunction({
           contractAddress: cfg.contract.address,
           contractName: cfg.contract.name,
-          functionName: 'get-pools-batch',
+          functionName: 'get_pools_batch',
           functionArgs: [uintCV(startId), uintCV(count)],
           senderAddress: cfg.contract.address,
           network,
@@ -309,7 +309,7 @@ export async function getPoolStats(poolId: number): Promise<{
     const result = await fetchCallReadOnlyFunction({
       contractAddress: cfg.contract.address,
       contractName: cfg.contract.name,
-      functionName: 'get-pool-stats',
+      functionName: 'get_pool_stats',
       functionArgs: [uintCV(poolId)],
       senderAddress: cfg.contract.address,
       network,

@@ -62,7 +62,7 @@ export async function getPoolCount(): Promise<number> {
         const result = await fetchCallReadOnlyFunction({
             contractAddress: cfg.contract.address,
             contractName: cfg.contract.name,
-            functionName: 'get-pool-count',
+            functionName: 'get_pool_count',
             functionArgs: [],
             senderAddress: cfg.contract.address,
             network,
@@ -90,7 +90,7 @@ export async function getPool(poolId: number): Promise<Pool | null> {
         const result = await fetchCallReadOnlyFunction({
             contractAddress: cfg.contract.address,
             contractName: cfg.contract.name,
-            functionName: 'get-pool',
+            functionName: 'get_pool',
             functionArgs: [uintCV(poolId)],
             senderAddress: cfg.contract.address,
             network,
@@ -221,7 +221,7 @@ export async function getUserBet(poolId: number, userAddress: string): Promise<U
         const result = await fetchCallReadOnlyFunction({
             contractAddress: cfg.contract.address,
             contractName: cfg.contract.name,
-            functionName: 'get-user-bet',
+            functionName: 'get_user_bet',
             functionArgs: [uintCV(poolId), principalCV(userAddress)],
             senderAddress: cfg.contract.address,
             network,
@@ -504,9 +504,9 @@ export async function getUserActivity(
             const fnName: string = callInfo?.function_name || 'unknown';
 
             let type: ActivityItem['type'] = 'contract-call';
-            if (fnName === 'place-bet') type = 'bet-placed';
-            else if (fnName === 'claim-winnings') type = 'winnings-claimed';
-            else if (fnName === 'create-pool') type = 'pool-created';
+            if (fnName === 'place_bet') type = 'bet-placed';
+            else if (fnName === 'claim_winnings') type = 'winnings-claimed';
+            else if (fnName === 'create_pool') type = 'pool-created';
 
             let status: ActivityItem['status'] = 'pending';
             if (tx.tx_status === 'success') status = 'success';
